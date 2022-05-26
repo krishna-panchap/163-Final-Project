@@ -9,7 +9,7 @@ import pandas as pd
 
 
 def cleanup_cpi(cpi_file):
-    cpi = pd.read_csv(cpi_file)
+    cpi = pd.read_csv(cpi_file, index_col='Year', parse_dates=True)
     cpi = cpi.loc[:, ((cpi.columns != 'HALF1') & (cpi.columns != 'HALF2'))]
     cpi.to_csv(cpi_file)
 
