@@ -1,2 +1,3 @@
 # 163-Final-Project
-doing sus things to predict war
+## description 
+The core of this project is centered on analyzing the effects of war on various socio-economic scales
