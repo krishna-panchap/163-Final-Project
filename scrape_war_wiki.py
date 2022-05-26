@@ -3,6 +3,7 @@ Krishna Panchapagesan, Mark Pock
 CSE 163
 This module will scrape the war table on the
 "List of conflicts by duration" Wikipedia page
+and output into a csv file 'list
 """
 
 import pandas as pd
