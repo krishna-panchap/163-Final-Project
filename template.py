@@ -19,5 +19,6 @@ def template(**kwargs: Iterable[object]) -> object:
 def main():
     pass
 
+
 if __name__ == '__main__':
     main()
