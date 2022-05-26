@@ -5,7 +5,7 @@ CSE 163 Final Project
 Insert documentation here.
 """
 
-
+# used for type annotation
 from typing import Iterable
 
 
