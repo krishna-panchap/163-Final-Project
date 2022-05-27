@@ -20,8 +20,8 @@ def time_series(filename: str, lib: str = '', col: str = 'Date',
 
 def html_to_csv(filename: str, elib: str = '', blib: str = '') -> pd.DataFrame:
     """
-    Transforms a csv from the datasets/html_tables folder into a csv. The
-    filename will be the name of the file alone & the libraries will be the
+    Transforms an html file from the datasets/html_tables folder into a csv.
+    The filename will be the name of the file alone & the libraries will be the
     internal folders (e.g. 'stocks/raw/').
     """
     with open('./datasets/html_tables/' + blib + filename + '.html') as f:
