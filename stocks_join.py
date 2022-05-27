@@ -20,9 +20,9 @@ def joins(stocks: Iterable[str]) -> pd.DataFrame:
     Joins together all the data in csvs whose file names are given by a
     nonempty Iterable of str stocks, returning the resultant DataFrame.
     """
-    df = time_series(stocks[0], 'stocks/raw/', True)
+    df = time_series(stocks[0], 'stocks/raw/')
     for i in range(1, len(stocks)):
-        df = df.merge(time_series(stocks[i], 'stocks/raw/', True), how='outer',
+        df = df.merge(time_series(stocks[i], 'stocks/raw/'), how='outer',
                       left_on='Date', right_on='Date')
     return df
 

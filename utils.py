@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def time_series(filename: str, lib: str = '',
-                concat: bool = False) -> pd.DataFrame:
+                concat: bool = True) -> pd.DataFrame:
     """
     Transforms a csv from the datasets folder into a Time Series as a pandas
     dataframe. The filename will be the name of the file alone without the
@@ -16,3 +16,21 @@ def time_series(filename: str, lib: str = '',
     if concat:
         df.columns = [(filename + ' ' + col) for col in df.columns]
     return df
+
+
+def html_to_csv(filename: str, elib: str = '', blib: str = '') -> pd.DataFrame:
+    """
+    Transforms a csv from the datasets/html_tables folder into a csv. The
+    filename will be the name of the file alone & the libraries will be the
+    internal folders (e.g. 'stocks/raw/').
+    """
+    with open('./datasets/html_tables/' + blib + filename + '.html') as f:
+        df_arr = pd.read_html(f.read())
+        df = pd.DataFrame(df_arr[0])
+        if isinstance(df.columns, pd.MultiIndex):
+            for _ in range(len(df.columns.names) - 1):
+                df.columns = df.columns.droplevel()
+        if 'Year' in df.columns:
+            df.loc[:, 'Date'] = df['Year']
+            df = df.loc[:, (df.columns != 'Year')]
+        df.to_csv('./datasets/' + elib + filename + '.csv')
