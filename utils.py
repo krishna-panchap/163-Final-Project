@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def time_series(filename: str, lib: str = '',
+def time_series(filename: str, lib: str = '', col: str = 'Date',
                 concat: bool = True) -> pd.DataFrame:
     """
     Transforms a csv from the datasets folder into a Time Series as a pandas
@@ -11,7 +11,7 @@ def time_series(filename: str, lib: str = '',
     with the file.
     """
     path = './datasets/' + lib + filename + '.csv'
-    df = pd.read_csv(path, index_col='Date', parse_dates=True)
+    df = pd.read_csv(path, index_col=col, parse_dates=True)
     df = df.loc[:, df.columns != 'Unnamed: 0']
     if concat:
         df.columns = [(filename + ' ' + col) for col in df.columns]
@@ -30,7 +30,4 @@ def html_to_csv(filename: str, elib: str = '', blib: str = '') -> pd.DataFrame:
         if isinstance(df.columns, pd.MultiIndex):
             for _ in range(len(df.columns.names) - 1):
                 df.columns = df.columns.droplevel()
-        if 'Year' in df.columns:
-            df.loc[:, 'Date'] = df['Year']
-            df = df.loc[:, (df.columns != 'Year')]
         df.to_csv('./datasets/' + elib + filename + '.csv')
