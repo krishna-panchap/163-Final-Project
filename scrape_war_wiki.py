@@ -43,7 +43,8 @@ def get_present_data(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
     war_history = soup.find('table', {'class': 'wikitable sortable'})
-    return pd.DataFrame(pd.read_html(str(war_history))[0])
+    war_df = pd.DataFrame(pd.read_html(str(war_history))[0])
+    return war_df
 
 
 def main():
@@ -56,6 +57,16 @@ def main():
     new_df = get_present_data(new_url)
     combined_df = old_df.append(new_df)
     combined_df.to_csv('updated_list_of_wars.csv')
+    combined_df = pd.read_csv('updated_list_of_wars.csv')
+    combined_df = combined_df.fillna("")
+    combined_df['Finish'] = combined_df['Finish'].astype(str) + \
+        combined_df['Finished'].astype(str)
+    combined_df['Name of Conflict'] = \
+        combined_df['Name of Conflict'].astype(str) + \
+        combined_df['Name of conflict'].astype(str)
+    relevant_columns = ['Start', 'Finish', 'Name of Conflict']
+    wars = combined_df[relevant_columns]
+    wars.to_csv('updated_list_of_wars.csv')
 
 
 if __name__ == '__main__':
