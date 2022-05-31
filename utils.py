@@ -41,7 +41,8 @@ def web_tables(url: str, name: str, lib: str = '', bounds: tuple = (0, 0)):
     Given a web url containing some html tables, concatenates the occurrences
     within a range given by the tuple bounds (inclusive on low, exclusive on
     high) into a single table, then saved as a csv within the library datasets
-    in a subfolder given by lib with a filename given by name.
+    in a subfolder given by lib with a filename given by name. If bounds is
+    not given, concatenates all occurences together.
     """
     response = requests.get(url)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -55,6 +56,12 @@ def web_tables(url: str, name: str, lib: str = '', bounds: tuple = (0, 0)):
 
 
 def index_parse(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Deals with MultiIndexes in pandas DataFrames when reading in from a source
+    like a website that might contain them because of formatting. Drops all
+    rows of the index but the lowest, leaving a standard index, and returns
+    the altered DataFrame.w
+    """
     if isinstance(df.columns, pd.MultiIndex):
         for _ in range(len(df.columns.names) - 1):
             df.columns = df.columns.droplevel()
@@ -62,6 +69,13 @@ def index_parse(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def time_inflation():
+    """
+    Transforms the consumer price index (CPI) into a csv of multipliers which
+    represent the values needed to multiply any quantity unadjusted for
+    inflation by to adjust for inflation. Calculated by taking the ratio
+    between the CPI at any time and the benchmark 100, then taking its
+    reciprocal. Saves this multipliers csv to datasets.
+    """
     inflation = time_series('cpi', col='Year', concat=False)
     inflation.loc['2022-01-01', 'May':'Dec'] = np.nan  # Unpublished months
     multipliers = (inflation.astype(float) / 100) ** (-1)
@@ -82,6 +96,13 @@ def time_inflation():
 
 
 def inflation_adjust(df: pd.DataFrame, col: str) -> pd.Series:
+    """
+    Adjusts any column col in a DataFrame df varying over time for inflation
+    by multiplying the column through by the associated multipliers (reciprocal
+    of the ratio between CPI at a given time and 100). If no multiplier exists
+    for a time in the column, will give NaN for that timeframe. The change is
+    not inplace, so returns a new pandas Series.
+    """
     if 'inflation_ratios.csv' not in os.listdir('./datasets/'):
         time_inflation()
     inflation = time_series('inflation_ratios', col='Unnamed: 0', concat=False)
@@ -91,7 +112,7 @@ def inflation_adjust(df: pd.DataFrame, col: str) -> pd.Series:
         try:
             adj[date] = df.loc[date, col] * inflation.loc[date[:-3] + '-01']
         except KeyError:
-            pass
-    result = pd.Series(adj, index=None)
+            adj[date] = np.nan
+    result = pd.Series(adj, index=None, dtype=float)
     result.name = col + ' Adjusted'
     return result
