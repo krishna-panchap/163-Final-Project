@@ -1,5 +1,7 @@
-import pandas as pd
+import os
 import requests
+import numpy as np
+import pandas as pd
 from bs4 import BeautifulSoup
 
 
@@ -50,8 +52,44 @@ def web_tables(url: str, name: str, lib: str = '', bounds: tuple = (0, 0)):
     df.to_csv('./datasets/' + lib + name + '.csv')
 
 
-def index_parse(df: pd.DataFrame):
+def index_parse(df: pd.DataFrame) -> pd.DataFrame:
     if isinstance(df.columns, pd.MultiIndex):
         for _ in range(len(df.columns.names) - 1):
             df.columns = df.columns.droplevel()
     return df
+
+
+def time_inflation():
+    inflation = time_series('cpi', col='Year', concat=False)
+    inflation.loc['2022-01-01', 'May':'Dec'] = np.nan  # Unpublished months
+    multipliers = (inflation.astype(float) / 100) ** (-1)
+    rearranged = pd.Series()
+    for year in multipliers.iterrows():
+        rearranged = pd.concat([rearranged, year[1]])
+    print(rearranged)
+    dates = []  # 1913 first
+    for i in range(len(rearranged)):
+        year = str(1913 + (i // 12)) + '-'
+        month = str((i % 12) + 1)
+        if len(month) == 1:
+            month = '0' + month
+        dates.append(year + month + '-01')
+    rearranged = rearranged.set_axis(dates).dropna()
+    rearranged.name = 'Multipliers'
+    rearranged.to_csv('./datasets/inflation_ratios.csv')
+
+
+def inflation_adjust(df: pd.DataFrame, col: str) -> pd.Series:
+    if 'inflation_ratios.csv' not in os.listdir('./datasets/'):
+        time_inflation()
+    inflation = time_series('inflation_ratios', col='Unnamed: 0', concat=False)
+    adj = dict()
+    for date in df.iterrows():
+        date = str(date[0]).split()[0]
+        try:
+            adj[date] = df.loc[date, col] * inflation.loc[date[:-3] + '-01']
+        except KeyError:
+            pass
+    result = pd.Series(adj, index=None)
+    result.name = col + ' Adjusted'
+    return result
