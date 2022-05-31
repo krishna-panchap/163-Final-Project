@@ -16,7 +16,10 @@ def time_series(filename: str, lib: str = '', col: str = 'Date',
     """
     path = './datasets/' + lib + filename + '.csv'
     df = index_parse(pd.read_csv(path))
-    df[col] = pd.to_datetime(df[col])
+    if len(str(df.loc[0, col])) > 4:
+        df[col] = pd.to_datetime(df[col], format='%Y-%m-%d')
+    else:
+        df[col] = pd.to_datetime(df[col], format='%Y')
     df = df.set_index(col)
     df = df.loc[:, df.columns != 'Unnamed: 0']
     if concat:
