@@ -15,7 +15,9 @@ def time_series(filename: str, lib: str = '', col: str = 'Date',
     with the file.
     """
     path = './datasets/' + lib + filename + '.csv'
-    df = pd.read_csv(path, index_col=col, parse_dates=True)
+    df = index_parse(pd.read_csv(path))
+    df[col] = pd.to_datetime(df[col])
+    df.set_index(col)
     df = df.loc[:, df.columns != 'Unnamed: 0']
     if concat:
         df.columns = [(filename + ' ' + col) for col in df.columns]
