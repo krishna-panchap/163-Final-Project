@@ -21,6 +21,7 @@ To clean (and in many respects obtain) the data, run the scripts as follows:
 4. process_gdps takes gdp information from MacroTrends (and another site,
    TheBalance, which has GDP information for the US before 1960 (the MacroTrends
    start date)) to aggregate into a single gdp csv which has the gdps in billions.
+   process_gdps obtains the csvs itself.
 5. stocks_averages uses the cleaned CPI data and the processed GDP data to
    generate an index for global economic health by weighting the major indices
    according to market capitalisation and GDP of region.
