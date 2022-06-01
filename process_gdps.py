@@ -71,6 +71,7 @@ def main():
     for series in gdp_series[1:]:
         df = df.join(series, how='outer')
     df.columns = [col.split()[0] for col in df.columns]
+    df.index.name = 'Date'
     df.to_csv('./datasets/gdps/pared.csv')
 
 
