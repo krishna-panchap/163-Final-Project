@@ -9,6 +9,7 @@ and output into a csv file 'list_of_wars.csv'
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import re  # needed to make use of regex to clean dates in list of wars dataset
 
 
 def extract_data_frame(url):
@@ -47,7 +48,22 @@ def get_present_data(url):
     return war_df
 
 
+def clean_values(date):
+    date_arr = re.split('[^0-9a-zA-Z]', date)
+    print(date_arr)
+    max = 0
+    for value in date_arr:
+        try:
+            value = int(value)
+            if value > max:
+                max = value
+        except ValueError:
+            pass
+    return max
+
+
 def main():
+    # pull dataframes from website
     url_1900_1944 = 'https://en.wikipedia.org/wiki/List_of_wars:_1900-1944'
     url_1945_1989 = 'https://en.wikipedia.org/wiki/List_of_wars:_1945-1989'
     url_1990_2002 = 'https://en.wikipedia.org/wiki/List_of_wars:_1990-2002'
@@ -56,8 +72,10 @@ def main():
     old_df = get_old_data(urls)
     new_df = get_present_data(new_url)
     combined_df = old_df.append(new_df)
-    combined_df.to_csv('updated_list_of_wars.csv')
-    combined_df = pd.read_csv('updated_list_of_wars.csv')
+    combined_df.to_csv('final_list_of_wars.csv')
+    combined_df = pd.read_csv('final_list_of_wars.csv')
+
+    # combine columns of dataframe
     combined_df = combined_df.fillna("")
     combined_df['Finish'] = combined_df['Finish'].astype(str) + \
         combined_df['Finished'].astype(str)
@@ -66,7 +84,13 @@ def main():
         combined_df['Name of conflict'].astype(str)
     relevant_columns = ['Start', 'Finish', 'Name of Conflict']
     wars = combined_df[relevant_columns]
-    wars.to_csv('updated_list_of_wars.csv')
+
+    # clean up dates and convert to integers. export
+    wars['Start'] = wars['Start'].apply(clean_values).apply(int)
+    wars['Finish'] = wars['Finish'].apply(clean_values).apply(int)
+    wars['Start'] = wars['Start'].replace(to_replace=0, value=2023)
+    wars['Finish'] = wars['Finish'].replace(to_replace=0, value=2023)
+    wars.to_csv('final_list_of_wars.csv')
 
 
 if __name__ == '__main__':
