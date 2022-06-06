@@ -7,7 +7,6 @@ Insert documentation here.
 
 # used for type annotation
 import pandas as pd
-from typing import Iterable
 from utils import time_series
 
 
