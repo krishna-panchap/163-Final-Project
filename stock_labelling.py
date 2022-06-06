@@ -6,37 +6,77 @@ Insert documentation here.
 """
 
 import pandas as pd
-from utils import time_series
+from utils import time_series, inflation_adjust
 
 
-def label_year(year: str, war: str, wars: pd.DataFrame):
+def process_entry(date: pd.Timestamp, start: int, finish: int) -> int:
     """
-    Given a year and a war as str along with a DataFrame of wars, labels the
-    year by what it is in relation to the war - before, during, after (5 years
-    on each side) or not applicable.
+    Processes a single index average entry with respect to a single war's
+    start and end dates. If the entry is less than 6 years before the given
+    start year, returns 1. If within the war, returns 2. If less than 6 years
+    after the given finish year, returns 3. If none apply, returns 0.
     """
-    yearint = int(year)
-    result = 'NA'
-    start = int(wars.loc[wars['Name of Conflict'] == war, 'Start'])
-    end = int(wars.loc[wars['Name of Conflict'] == war, 'Finish'])
-    if (start - 5) <= yearint and yearint < start:
-        result = 'Pre'
-    if start <= yearint and yearint < end:
-        result = 'In'
-    if end <= yearint and yearint <= end + 5:
-        result = 'Post'
-    return result
+    date = date.year
+    if (start - 5) <= date and date < start:
+        return 1
+    if start <= date and date < finish:
+        return 2
+    if finish <= date and date <= finish + 5:
+        return 3
+    return 0
+
+
+def process_war(index: int, dates: pd.Series, wars: pd.DataFrame) -> pd.Series:
+    """
+    Processes a single war from the wars DataFrame at the given index,
+    returning a pandas Series that represents where each index average
+    entry is in relationship to the start and end dates of the war.
+    """
+    start = wars.loc[index, 'Start']
+    finish = wars.loc[index, 'Finish']
+    return dates.apply(lambda x: process_entry(x, start, finish))
+
+
+def set_stocks() -> pd.Series:
+    """
+    Sets up the necessary stock data by adjusting the GDP-weighted average from
+    ./datasets/stocks/processed/averaged.csv for inflation and returning it
+    as a mean resampled by week as a pandas Series.
+    """
+    stocks = time_series('averaged', 'stocks/processed/', concat=False)
+    stocks.sort_index(inplace=True)
+    inflation = time_series('inflation_ratios', col='Unnamed: 0', concat=False)
+    adj_avg = pd.Series(stocks.index).apply(lambda x: inflation_adjust(x,
+                                            'Average', stocks, inflation))
+    adj_avg.index = stocks.index
+    adj_avg.name = 'Adjusted Average'
+    return adj_avg.resample('7D').mean()
+
+
+def set_wars() -> pd.DataFrame:
+    """
+    Sets up the necessary wars data by converting dtypes where necessary and
+    trimming unnecessary columns, returning the requisite table as a pandas
+    DataFrame.
+    """
+    wars = pd.read_csv('./datasets/final_list_of_wars.csv').loc[1:]
+    wars['Start'] = wars['Start'].astype(int)
+    wars['Finish'] = wars['Finish'].astype(int)
+    return wars.loc[:, wars.columns != 'Unnamed: 0']
 
 
 def main():
-    stocks = time_series('averaged', 'stocks/processed/', concat=False)
-    stocks = pd.DataFrame(stocks['Average'])
-    wars = pd.read_csv('./datasets/final_list_of_wars.csv')
+    stocks = set_stocks()
+    wars = set_wars()
+
     dates = pd.Series(stocks.index)
-    for war in wars['Name of Conflict']:
-        stocks[war] = dates.apply(lambda x: label_year(
-                                  str(x).split('-')[0], war, wars))
-    stocks.to_csv('./datasets/mega.csv')
+    wars_index = pd.Series(wars.index).astype(int)
+
+    df = wars_index.apply(lambda i: process_war(i, dates, wars)).T
+    df.columns = wars['Name of Conflict']
+    df.index = stocks.index
+    final = pd.DataFrame(stocks).merge(df, left_index=True, right_index=True)
+    final.to_csv('./datasets/final.csv')
 
 
 if __name__ == '__main__':

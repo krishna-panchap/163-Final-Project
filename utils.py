@@ -1,4 +1,3 @@
-import os
 import requests
 import numpy as np
 import pandas as pd
@@ -101,24 +100,22 @@ def time_inflation():
     rearranged.to_csv('./datasets/inflation_ratios.csv')
 
 
-def inflation_adjust(df: pd.DataFrame, col: str) -> pd.Series:
+def inflation_adjust(date: pd.Timestamp, col: str, df: pd.DataFrame,
+                     inflation: pd.DataFrame) -> float:
     """
-    Adjusts any column col in a DataFrame df varying over time for inflation
-    by multiplying the column through by the associated multipliers (reciprocal
+    Adjusts a single value at a given date (from a datetime-like pandas index)
+    at a column col in a DataFrame df varying over time for inflation
+    by multiplying the value by the associated multiplier (reciprocal
     of the ratio between CPI at a given time and 100). If no multiplier exists
-    for a time in the column, will give NaN for that timeframe. The change is
-    not inplace, so returns a new pandas Series.
+    for a time in the column, will give NaN for that timeframe. Returns the
+    new value as a float.
     """
-    if 'inflation_ratios.csv' not in os.listdir('./datasets/'):
-        time_inflation()
-    inflation = time_series('inflation_ratios', col='Unnamed: 0', concat=False)
-    adj = dict()
-    for date in df.iterrows():
-        date = str(date[0]).split()[0]
-        try:
-            adj[date] = df.loc[date, col] * inflation.loc[date[:-3] + '-01']
-        except KeyError:
-            adj[date] = np.nan
-    result = pd.Series(adj, index=None, dtype=float)
-    result.name = col + ' Adjusted'
-    return result
+    try:
+        mon = str(date.month)
+        if len(mon) == 1:
+            mon = '0' + mon
+        multiplier = float(inflation.loc[str(date.year) + '-' + mon + '-01'])
+        value = float(df.loc[date, col])
+        return multiplier * value
+    except KeyError:
+        return np.nan
