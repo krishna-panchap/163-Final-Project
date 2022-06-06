@@ -50,7 +50,6 @@ def get_present_data(url):
 
 def clean_values(date):
     date_arr = re.split('[^0-9a-zA-Z]', date)
-    print(date_arr)
     max = 0
     for value in date_arr:
         try:
@@ -72,8 +71,9 @@ def main():
     old_df = get_old_data(urls)
     new_df = get_present_data(new_url)
     combined_df = old_df.append(new_df)
-    combined_df.to_csv('final_list_of_wars.csv')
-    combined_df = pd.read_csv('final_list_of_wars.csv')
+    # needed to restandardize the dataframe
+    combined_df.to_csv('./datasets/old_list_of_wars.csv')
+    combined_df = pd.read_csv('./datasets/old_list_of_wars.csv')
 
     # combine columns of dataframe
     combined_df = combined_df.fillna("")
@@ -85,12 +85,21 @@ def main():
     relevant_columns = ['Start', 'Finish', 'Name of Conflict']
     wars = combined_df[relevant_columns]
 
-    # clean up dates and convert to integers. export
+    # clean up dates and convert to integers
     wars['Start'] = wars['Start'].apply(clean_values).apply(int)
     wars['Finish'] = wars['Finish'].apply(clean_values).apply(int)
     wars['Start'] = wars['Start'].replace(to_replace=0, value=2023)
     wars['Finish'] = wars['Finish'].replace(to_replace=0, value=2023)
-    wars.to_csv('final_list_of_wars.csv')
+    # get rid of everything before 1934
+    wars = wars[(wars['Start'] >= 1934) & (wars['Finish'] >= 1934)]
+    wars = wars[['Start', 'Finish', 'Name of Conflict']]
+    # separate dataframe to old and ongoing wars parts
+    old_wars = wars[wars['Finish'] != 2023]
+    current_wars = wars[wars['Finish'] == 2023]
+    current_wars = current_wars[current_wars['Start'] != 2023]
+    # export to csv
+    old_wars.to_csv('./datasets/old_list_of_wars.csv')
+    current_wars.to_csv('./datasets/new_list_of_wars.csv')
 
 
 if __name__ == '__main__':
