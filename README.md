@@ -3,6 +3,9 @@
 The core of this project is centered on analyzing the effects of war on various
 socio-economic scales.
 
+Required packages:
+pandas, numpy, requests, BeautifulSoup, typing, os, seaborn, matplotlib
+
 We divide the scripts used to run the project roughly into three groups - 
 cleaning data, analysing the data, and visualising the data. In addition, the utils
 file contains utilities such as easy time series transformations used throughout

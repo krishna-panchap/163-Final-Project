@@ -59,7 +59,10 @@ def set_wars() -> pd.DataFrame:
     trimming unnecessary columns, returning the requisite table as a pandas
     DataFrame.
     """
-    wars = pd.read_csv('./datasets/final_list_of_wars.csv').loc[1:]
+    input_csv = input('Which csv do you want to use for wars? ')
+    wars = pd.read_csv('./datasets/' + input_csv + '.csv')
+    if wars.loc[0, 'Start'] == 2023:
+        wars: pd.DataFrame = wars.loc[1:]
     wars['Start'] = wars['Start'].astype(int)
     wars['Finish'] = wars['Finish'].astype(int)
     return wars.loc[:, wars.columns != 'Unnamed: 0']
@@ -76,7 +79,8 @@ def main():
     df.columns = wars['Name of Conflict']
     df.index = stocks.index
     final = pd.DataFrame(stocks).merge(df, left_index=True, right_index=True)
-    final.to_csv('./datasets/final.csv')
+    filename = input('What do you want the name of the generated csv to be? ')
+    final.to_csv('./datasets/' + filename + '.csv')
 
 
 if __name__ == '__main__':
