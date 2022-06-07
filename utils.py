@@ -2,6 +2,23 @@ import requests
 import numpy as np
 import pandas as pd
 from bs4 import BeautifulSoup
+import re
+
+
+def clean_values(date):
+    '''
+    converts date itended data to year integer
+    '''
+    date_arr = re.split('[^0-9a-zA-Z]', date)
+    max = 0
+    for value in date_arr:
+        try:
+            value = int(value)
+            if value > max:
+                max = value
+        except ValueError:
+            pass
+    return max
 
 
 def time_series(filename: str, lib: str = '', col: str = 'Date',

@@ -9,8 +9,12 @@ requests = "*"
 bs4 = "*"
 lxml = "*"
 flake8 = "*"
+matplotlib = "*"
+seaborn = "*"
 
 [dev-packages]
+jupyter = "*"
+notebook = "*"
 
 [requires]
 python_version = "3.9"
