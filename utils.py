@@ -1,3 +1,7 @@
+'''
+this module contains the necessary functions that are used in
+all parts of this project
+'''
 import requests
 import numpy as np
 import pandas as pd
