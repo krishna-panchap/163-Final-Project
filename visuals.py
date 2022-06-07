@@ -4,7 +4,7 @@ This module includes all the visualizations pertinent to the project
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from utils import time_series, inflation_adjust
+from utils import time_series, inflation_adjust, clean_values
 
 
 def wars_over_time(mega_dataset):
@@ -73,6 +73,34 @@ def economy_over_time(global_economy):
                 pad_inches=0.3)
 
 
+def freedom_over_time(freedom):
+    '''
+    plots the percentages of free, not free, and partially free
+    countries over time.
+    '''
+    def clean_percents(data):
+        data = str(data)
+        data = data[0:-1]
+        return float(data)
+    freedom['Year(s) Under Review**'] = \
+        freedom['Year(s) Under Review**'] \
+        .apply(clean_values)
+    relevant_indexes = [4, 6, 8]
+    for value in relevant_indexes:
+        freedom[freedom.columns[value]] = \
+            freedom[freedom.columns[value]] \
+            .apply(clean_percents)
+    freedom = freedom.sort_values('Year(s) Under Review**')
+    relavent = freedom[['Year(s) Under Review**', '% of F Countries',
+                        '% of PF Countries', '% of NF Countries']]
+    relavent = relavent.set_index('Year(s) Under Review**')
+    relavent.plot()
+    plt.title('World Freedom Percentages of Countries over Time')
+    plt.xlabel('Year (1972 to 2021)')
+    plt.ylabel('Percentage')
+    plt.savefig('./visuals/global_freedom.png', bbox_inches='tight')
+
+
 def main():
     mega_dataset = pd.read_csv('./datasets/final.csv', parse_dates=True,
                                index_col='Date')
@@ -80,6 +108,8 @@ def main():
     stocks = time_series('averaged', 'stocks/processed/', concat=False)
     global_economy = stock_vs_inflation_adjusted(stocks)
     economy_over_time(global_economy)
+    freedom = pd.read_csv('./datasets/freedom_by_year.csv')
+    freedom_over_time(freedom)
 
 
 if __name__ == '__main__':
