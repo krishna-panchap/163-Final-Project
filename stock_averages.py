@@ -2,18 +2,22 @@
 Krishna Panchapagesan, Mark Pock
 CSE 163 Final Project
 
-Insert documentation here.
+Takes a weighted average of data organised by year by the GDP of the region
+encompassed in the data over time. In this case the data is data from four
+of the largest and oldest stock indices - the S&P 500, the EUR 100, the
+NIKKEI 225, and the SSE Component.
 """
 
-# used for type annotation
 import pandas as pd
 from utils import time_series
 
 
 def prev_year(date_int: int, gdps: pd.DataFrame, region: tuple) -> float:
     """
-    Checks the previous year for its GDP if the current year does
-    not have a GDP, returning the GDP in billions as a float.
+    Checks the previous year for its GDP if the current year does not have a
+    GDP, returning the GDP of whichever is applicable in billions as a float.
+    Note for behaviour - will recurse infinitely if no previous year exists.
+    Data should be cleaned beforehand to mitigate the possibility.
     """
     try:
         return float(gdps.loc[str(date_int), region[1]])
@@ -21,8 +25,12 @@ def prev_year(date_int: int, gdps: pd.DataFrame, region: tuple) -> float:
         return prev_year(date_int - 1)
 
 
-def nonzeros(i, filled: pd.DataFrame) -> int:
-    vals = filled.loc[i]
+def nonzeros(index: int, filled: pd.DataFrame) -> int:
+    """
+    Gets the number of nonzero points in a single row given by an int index,
+    returning the number as an int.
+    """
+    vals = filled.loc[index]
     return len(vals[vals != 0])
 
 
