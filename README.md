@@ -5,10 +5,10 @@ socio-economic scales.
 
 Required packages:
 pandas, numpy, requests, BeautifulSoup, typing, os, seaborn, matplotlib, keras,
-tensorflow
+tensorflow, re
 
 A brief note: the utils file contains utilities such as easy time series
-transformations used throughout the scripts.
+transformations used throughout the scripts. The testing file tests the html parsing requred to scrape the tables of Wikipedia
 
 Run the scripts as follows:
 1. scrape_war_wiki constructs a list of wars dataset from Wikipedia pages which
